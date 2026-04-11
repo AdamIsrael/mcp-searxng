@@ -1,0 +1,7 @@
+# mcp-searxng configuration
+#
+# Copy to $HOME/.config/mcp-searxng/config.toml, or point
+# $MCP_SEARXNG_CONFIG at this file.
+
+# Base URL of your SearXNG instance. JSON API must be enabled.
+searxng_url = "http://localhost:8080"

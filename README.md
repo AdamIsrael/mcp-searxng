@@ -17,10 +17,25 @@ The binary will be at `target/release/mcp-searxng`.
 
 ## Configuration
 
-| Environment Variable | Default | Description |
+On startup the binary loads a TOML config file from:
+
+1. `$MCP_SEARXNG_CONFIG`, if set, or
+2. `$HOME/.config/mcp-searxng/config.toml` (default)
+
+The file is required — the server will not start without it. See [`config.example.toml`](config.example.toml) for a template.
+
+### Fields
+
+| Key | Required | Description |
 |---|---|---|
-| `SEARXNG_URL` | `http://localhost:8080` | Base URL of your SearXNG instance |
-| `RUST_LOG` | (off) | Log level (e.g. `info`, `debug`) — logs go to stderr |
+| `searxng_url` | yes | Base URL of your SearXNG instance (e.g. `http://localhost:8080`) |
+
+### Environment
+
+| Variable | Description |
+|---|---|
+| `MCP_SEARXNG_CONFIG` | Override path to the config file |
+| `RUST_LOG` | Log level (e.g. `info`, `debug`) — logs go to stderr |
 
 ## Usage with Claude Code
 
@@ -30,9 +45,21 @@ Add to your `.mcp.json`:
 {
   "mcpServers": {
     "searxng": {
+      "command": "/path/to/mcp-searxng"
+    }
+  }
+}
+```
+
+To point at a non-default config location:
+
+```json
+{
+  "mcpServers": {
+    "searxng": {
       "command": "/path/to/mcp-searxng",
       "env": {
-        "SEARXNG_URL": "http://localhost:8080"
+        "MCP_SEARXNG_CONFIG": "/path/to/config.toml"
       }
     }
   }

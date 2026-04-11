@@ -6,6 +6,31 @@ use rmcp::{
     schemars, tool,
 };
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
+
+// --- Config ---
+
+#[derive(Debug, Deserialize)]
+struct Config {
+    searxng_url: String,
+}
+
+fn config_path() -> Result<PathBuf, Box<dyn std::error::Error>> {
+    if let Some(p) = std::env::var_os("MCP_SEARXNG_CONFIG") {
+        return Ok(PathBuf::from(p));
+    }
+    let home = std::env::var_os("HOME").ok_or("HOME not set")?;
+    Ok(PathBuf::from(home).join(".config/mcp-searxng/config.toml"))
+}
+
+fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
+    let path = config_path()?;
+    let text = std::fs::read_to_string(&path)
+        .map_err(|e| format!("failed to read config at {}: {e}", path.display()))?;
+    let config: Config = toml::from_str(&text)
+        .map_err(|e| format!("failed to parse config at {}: {e}", path.display()))?;
+    Ok(config)
+}
 
 // --- SearXNG API types ---
 
@@ -140,10 +165,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_writer(std::io::stderr)
         .init();
 
-    let base_url = std::env::var("SEARXNG_URL")
-        .unwrap_or_else(|_| "http://localhost:8080".to_string())
-        .trim_end_matches('/')
-        .to_string();
+    let config = load_config()?;
+    let base_url = config.searxng_url.trim_end_matches('/').to_string();
 
     let server = SearxngServer::new(base_url);
     let transport = rmcp::transport::io::stdio();
